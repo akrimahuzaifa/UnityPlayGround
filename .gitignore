@@ -112,3 +112,10 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Local MCP config (absolute, per-machine paths). See docs/CLAUDE-UNITY-BLENDER-SETUP.md
+/.mcp.json
+
+# Unity AI Assistant scratch files
+/[Aa]ssets/AI Toolkit/
+/[Aa]ssets/AI Toolkit.meta
