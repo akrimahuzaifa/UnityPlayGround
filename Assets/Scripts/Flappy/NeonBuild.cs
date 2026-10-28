@@ -1,0 +1,90 @@
+using UnityEngine;
+
+namespace Flappy
+{
+    /// Construction of the set pieces, shared by the runtime bootstrap and the
+    /// Editor scene baker so the two can never drift apart.
+    public static class NeonBuild
+    {
+        /// A neon dart: stretched body, 45-degree nose, white-hot core and a trail.
+        public static GameObject Ship(Vector3 pos, Material shipMat, Material coreMat, Material trailMat)
+        {
+            var root = new GameObject("Ship");
+            root.transform.position = pos;
+            root.AddComponent<SphereCollider>().radius = 0.34f;
+
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(root.transform, false);
+
+            var body = Neon.Cube("Body", visual, shipMat);
+            body.transform.localScale = new Vector3(0.86f, 0.34f, 0.34f);
+
+            var nose = Neon.Cube("Nose", visual, shipMat);
+            nose.transform.localPosition = new Vector3(0.42f, 0f, 0f);
+            nose.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            nose.transform.localScale = Vector3.one * 0.28f;
+
+            var core = Neon.Cube("Core", visual, coreMat);
+            core.transform.localScale = new Vector3(0.30f, 0.20f, 0.36f);
+
+            var trail = visual.gameObject.AddComponent<TrailRenderer>();
+            trail.time = 0.34f;
+            trail.startWidth = 0.30f;
+            trail.endWidth = 0f;
+            trail.minVertexDistance = 0.04f;
+            trail.numCapVertices = 3;
+            trail.sharedMaterial = trailMat;
+            trail.emitting = false;
+
+            // Adds the Rigidbody via RequireComponent.
+            root.AddComponent<FlappyBird>();
+            return root;
+        }
+
+        public static GameObject Rails(Material railMat)
+        {
+            var root = new GameObject("Rails");
+            Neon.Cube("RailTop", root.transform, railMat);
+            Neon.Cube("RailBottom", root.transform, railMat);
+            return root;
+        }
+
+        public static GameObject Stars(Material starMat, int count, float halfW, float halfH)
+        {
+            var root = new GameObject("Stars");
+            Fill(root.transform, starMat, count, halfW, halfH);
+            return root;
+        }
+
+        /// Star meshes modelled in Blender (Art/Blender/NeonStars.blend). Loaded from
+        /// Resources so the runtime bootstrap gets them in builds too.
+        public const string StarMeshes = "NeonFlux/NeonStars";
+
+        /// Tops the parallax field up to <paramref name="count"/> stars.
+        /// Falls back to cubes if the star meshes are missing.
+        public static void Fill(Transform root, Material starMat, int count, float halfW, float halfH)
+        {
+            var meshes = Resources.LoadAll<Mesh>(StarMeshes);
+            for (int i = root.childCount; i < count; i++)
+            {
+                GameObject s;
+                if (meshes.Length > 0)
+                {
+                    s = Neon.Model("Star", root, meshes[Random.Range(0, meshes.Length)], starMat);
+                    s.transform.localRotation = Quaternion.Euler(0f, 0f, Random.Range(-20f, 20f));
+                    // Spiky outlines cover less area than a cube, so they run larger.
+                    s.transform.localScale = Vector3.one * Random.Range(0.12f, 0.28f);
+                }
+                else
+                {
+                    s = Neon.Cube("Star", root, starMat);
+                    s.transform.localScale = Vector3.one * Random.Range(0.04f, 0.13f);
+                }
+                s.transform.position = new Vector3(
+                    Random.Range(-halfW, halfW),
+                    Random.Range(-halfH, halfH),
+                    Random.Range(2f, 7f));
+            }
+        }
+    }
+}
