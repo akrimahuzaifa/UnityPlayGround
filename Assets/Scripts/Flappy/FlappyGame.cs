@@ -50,7 +50,7 @@ namespace Flappy
         FlappyBird bird;
         Transform obstacleRoot;
         Transform railTop, railBottom;
-        Material pillarMat, coinMat, shipMat, railMat, starMat;
+        Material pillarMat, coinMat, coinFaceMat, shipMat, railMat, starMat;
 
         readonly List<Transform> stars = new List<Transform>();
         readonly List<float> starDepth = new List<float>();
@@ -85,11 +85,12 @@ namespace Flappy
             SetupCamera();
             ApplyFraming();
 
-            pillarMat = Neon.Make("NeonPillar", Neon.Magenta);
-            coinMat   = Neon.Make("NeonCoin",   Neon.Gold);
-            shipMat   = Neon.Make("NeonShip",   Neon.Cyan);
-            railMat   = Neon.Make("NeonRail",   Neon.Magenta, Neon.Glow * 0.8f);
-            starMat   = Neon.Make("NeonStar",   Neon.Star,    1.1f);
+            pillarMat   = Neon.Make("NeonPillar",   Neon.Magenta);
+            coinMat     = Neon.Make("NeonCoin",     Neon.Gold);
+            coinFaceMat = Neon.Make("NeonCoinFace", Neon.Orange,  0.6f);
+            shipMat     = Neon.Make("NeonShip",     Neon.Cyan);
+            railMat     = Neon.Make("NeonRail",     Neon.Magenta, Neon.Glow * 0.8f);
+            starMat     = Neon.Make("NeonStar",     Neon.Star,    1.1f);
 
             SetupBloom();
             SetupRails();
@@ -488,15 +489,10 @@ namespace Flappy
 
             if (UnityEngine.Random.value < 0.5f)
             {
-                var coin = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                coin.name = "Coin";
-                coin.transform.SetParent(root.transform);
+                var coin = NeonBuild.Coin(root.transform, coinMat, coinFaceMat);
                 coin.transform.localPosition =
                     new Vector3(0f, gapCenter + UnityEngine.Random.Range(-gap * 0.22f, gap * 0.22f), 0f);
-                coin.transform.localScale = Vector3.one * 0.42f;
-                coin.GetComponent<MeshRenderer>().sharedMaterial = coinMat;
-                coin.GetComponent<BoxCollider>().isTrigger = true;
-                coin.AddComponent<Coin>();
+                coin.transform.localScale = Vector3.one * 0.5f;
             }
         }
 

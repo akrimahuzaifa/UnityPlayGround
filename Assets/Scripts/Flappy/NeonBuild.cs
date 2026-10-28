@@ -56,6 +56,44 @@ namespace Flappy
             return root;
         }
 
+        /// Coin meshes modelled in Blender (Art/Blender/NeonCoin.blend): a glowing rim
+        /// and lightning bolt, plus a dim face so the two read apart when drawn unlit.
+        public const string CoinMeshes = "NeonFlux/NeonCoin";
+
+        static Mesh coinRim, coinFace;
+        static bool coinMeshesLoaded;
+
+        /// A collectible coin with a trigger collider.
+        /// Falls back to a cube if the coin meshes are missing.
+        public static GameObject Coin(Transform parent, Material rimMat, Material faceMat)
+        {
+            if (!coinMeshesLoaded)
+            {
+                coinMeshesLoaded = true;
+                foreach (var m in Resources.LoadAll<Mesh>(CoinMeshes))
+                {
+                    if (m.name == "CoinRim") coinRim = m;
+                    else if (m.name == "CoinFace") coinFace = m;
+                }
+            }
+
+            GameObject go;
+            if (coinRim != null)
+            {
+                go = Neon.Model("Coin", parent, coinRim, rimMat);
+                if (coinFace != null) Neon.Model("Face", go.transform, coinFace, faceMat);
+                go.AddComponent<SphereCollider>().radius = 0.5f;
+            }
+            else
+            {
+                go = Neon.Cube("Coin", parent, rimMat);
+                go.AddComponent<BoxCollider>();
+            }
+            go.GetComponent<Collider>().isTrigger = true;
+            go.AddComponent<Coin>();
+            return go;
+        }
+
         /// Star meshes modelled in Blender (Art/Blender/NeonStars.blend). Loaded from
         /// Resources so the runtime bootstrap gets them in builds too.
         public const string StarMeshes = "NeonFlux/NeonStars";
