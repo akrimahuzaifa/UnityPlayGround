@@ -142,10 +142,12 @@ These conventions keep the Blender to Unity round trip predictable. Ask Claude t
   `Assets/Resources/NeonFlux/`, so they can be loaded with `Resources.LoadAll<Mesh>(...)`.
   Example: `Assets/Resources/NeonFlux/NeonStars.fbx`.
 - **FBX export settings** (Blender uses Z-up, Unity uses Y-up): Apply Scalings = *FBX All*,
-  Forward = *-Z*, Up = *Y*, *Apply Transform* on, *Selected Objects* only, mesh objects only.
-- **Model scale and orientation:** model at real size in meters, centered on the origin. Flat pieces that
-  face the game camera are modelled facing Blender's front view (-Y); they arrive in Unity facing the
-  camera.
+  Forward = *Z*, Up = *Y*, *Apply Transform* on, *Selected Objects* only, mesh objects only.
+  With Forward = *-Z* Unity mirrors the X axis, which only goes unnoticed on symmetric models
+  (the stars and coin were exported that way; the ship would point backwards).
+- **Model scale and orientation:** model at real size in meters, centered on the origin. Side-view
+  pieces are modelled in Blender's front view (the XZ plane); Blender +X becomes Unity +X (the game's
+  forward direction) and Blender +Z becomes Unity +Y.
 - **Unity import settings:** materials *None*, no animation, cameras or lights. The game draws everything
   with its own unlit "neon" materials (see `Assets/Scripts/Flappy/Neon.cs`), so only geometry is needed.
 - **Keep meshes light.** The star models are 16 to 32 triangles each.

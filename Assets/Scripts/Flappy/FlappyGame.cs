@@ -70,6 +70,7 @@ namespace Flappy
 
         Texture2D px;
         GUIStyle bigStyle, midStyle, smallStyle, leftStyle;
+        int styleWidth, styleHeight;
 
         // =========================================================
         void Awake()
@@ -232,6 +233,7 @@ namespace Flappy
             return NeonBuild.Ship(
                 SpawnPoint,
                 shipMat,
+                Neon.Make("NeonShipPanel", Neon.Cyan, 0.6f),
                 Neon.Make("NeonCore", Color.white, 3.2f),
                 Neon.Make("NeonTrail", Neon.Cyan, Neon.Glow * 0.9f)
             ).GetComponent<FlappyBird>();
@@ -532,27 +534,29 @@ namespace Flappy
                 px.SetPixel(0, 0, Color.white);
                 px.Apply();
             }
-            if (bigStyle != null) return;
+            // Font sizes follow the screen size, so rebuild them when it changes
+            // (Game view resize, device rotation).
+            if (bigStyle != null && styleWidth == Screen.width && styleHeight == Screen.height) return;
+            styleWidth = Screen.width;
+            styleHeight = Screen.height;
 
-            int h = Screen.height;
-            bigStyle = new GUIStyle(GUI.skin.label);
-            bigStyle.alignment = TextAnchor.MiddleCenter;
-            bigStyle.fontStyle = FontStyle.Bold;
-            bigStyle.fontSize = Mathf.RoundToInt(h * 0.085f);
+            // Scale from the height in landscape, but from the width on tall portrait
+            // screens, where height-based sizes are too wide and "GAME OVER" wraps.
+            float u = Mathf.Min(Screen.height, Screen.width * 1.3f);
+            bigStyle   = HudStyle(u * 0.085f, TextAnchor.MiddleCenter, true);
+            midStyle   = HudStyle(u * 0.040f, TextAnchor.MiddleCenter, true);
+            smallStyle = HudStyle(u * 0.026f, TextAnchor.MiddleCenter, false);
+            leftStyle  = HudStyle(u * 0.032f, TextAnchor.MiddleLeft,   true);
+        }
 
-            midStyle = new GUIStyle(GUI.skin.label);
-            midStyle.alignment = TextAnchor.MiddleCenter;
-            midStyle.fontStyle = FontStyle.Bold;
-            midStyle.fontSize = Mathf.RoundToInt(h * 0.040f);
-
-            smallStyle = new GUIStyle(GUI.skin.label);
-            smallStyle.alignment = TextAnchor.MiddleCenter;
-            smallStyle.fontSize = Mathf.RoundToInt(h * 0.026f);
-
-            leftStyle = new GUIStyle(GUI.skin.label);
-            leftStyle.alignment = TextAnchor.MiddleLeft;
-            leftStyle.fontStyle = FontStyle.Bold;
-            leftStyle.fontSize = Mathf.RoundToInt(h * 0.032f);
+        GUIStyle HudStyle(float size, TextAnchor anchor, bool bold)
+        {
+            var st = new GUIStyle(GUI.skin.label);
+            st.alignment = anchor;
+            st.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            st.fontSize = Mathf.RoundToInt(size);
+            st.wordWrap = false;
+            return st;
         }
 
         void Box(Rect r, Color c)
@@ -577,6 +581,11 @@ namespace Flappy
 
             // GUI space is top-left origin; Screen.safeArea is bottom-left.
             Rect safe = Screen.safeArea;
+            // The Device Simulator can report a safe area for another device or
+            // orientation than the Game view shows, which pushes the HUD off-screen.
+            if (safe.width <= 0f || safe.height <= 0f ||
+                safe.xMax > Screen.width + 1f || safe.yMax > Screen.height + 1f)
+                safe = new Rect(0f, 0f, Screen.width, Screen.height);
             float x = safe.x;
             float w = safe.width;
             float y = Screen.height - safe.y - safe.height;

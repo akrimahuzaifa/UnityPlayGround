@@ -6,8 +6,13 @@ namespace Flappy
     /// Editor scene baker so the two can never drift apart.
     public static class NeonBuild
     {
-        /// A neon dart: stretched body, 45-degree nose, white-hot core and a trail.
-        public static GameObject Ship(Vector3 pos, Material shipMat, Material coreMat, Material trailMat)
+        /// Ship meshes modelled in Blender (Art/Blender/NeonShip.blend): cyan hull,
+        /// dark panel lines, and a white-hot canopy and engine.
+        public const string ShipMeshes = "NeonFlux/NeonShip";
+
+        /// A neon jet with a trail from its engine.
+        /// Falls back to a cube dart if the ship meshes are missing.
+        public static GameObject Ship(Vector3 pos, Material shipMat, Material panelMat, Material coreMat, Material trailMat)
         {
             var root = new GameObject("Ship");
             root.transform.position = pos;
@@ -16,20 +21,42 @@ namespace Flappy
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
 
-            var body = Neon.Cube("Body", visual, shipMat);
-            body.transform.localScale = new Vector3(0.86f, 0.34f, 0.34f);
+            Mesh hull = null, panel = null, core = null;
+            foreach (var m in Resources.LoadAll<Mesh>(ShipMeshes))
+            {
+                if (m.name == "ShipHull") hull = m;
+                else if (m.name == "ShipPanel") panel = m;
+                else if (m.name == "ShipCore") core = m;
+            }
 
-            var nose = Neon.Cube("Nose", visual, shipMat);
-            nose.transform.localPosition = new Vector3(0.42f, 0f, 0f);
-            nose.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
-            nose.transform.localScale = Vector3.one * 0.28f;
+            Transform trailHost = visual;
+            if (hull != null)
+            {
+                Neon.Model("Hull", visual, hull, shipMat);
+                if (panel != null) Neon.Model("Panel", visual, panel, panelMat);
+                if (core != null) Neon.Model("Core", visual, core, coreMat);
 
-            var core = Neon.Cube("Core", visual, coreMat);
-            core.transform.localScale = new Vector3(0.30f, 0.20f, 0.36f);
+                trailHost = new GameObject("Exhaust").transform;
+                trailHost.SetParent(visual, false);
+                trailHost.localPosition = new Vector3(-0.52f, -0.01f, 0f);
+            }
+            else
+            {
+                var body = Neon.Cube("Body", visual, shipMat);
+                body.transform.localScale = new Vector3(0.86f, 0.34f, 0.34f);
 
-            var trail = visual.gameObject.AddComponent<TrailRenderer>();
+                var nose = Neon.Cube("Nose", visual, shipMat);
+                nose.transform.localPosition = new Vector3(0.42f, 0f, 0f);
+                nose.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+                nose.transform.localScale = Vector3.one * 0.28f;
+
+                var coreCube = Neon.Cube("Core", visual, coreMat);
+                coreCube.transform.localScale = new Vector3(0.30f, 0.20f, 0.36f);
+            }
+
+            var trail = trailHost.gameObject.AddComponent<TrailRenderer>();
             trail.time = 0.34f;
-            trail.startWidth = 0.30f;
+            trail.startWidth = 0.18f;
             trail.endWidth = 0f;
             trail.minVertexDistance = 0.04f;
             trail.numCapVertices = 3;

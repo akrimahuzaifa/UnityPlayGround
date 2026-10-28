@@ -69,11 +69,12 @@ namespace Flappy.EditorTools
             EnsureFolder("Assets", "Materials");
             EnsureFolder("Assets/Materials", "NeonFlux");
 
-            Material shipMat  = Mat("Ship",  Neon.Cyan,    Neon.Glow);
-            Material coreMat  = Mat("Core",  Color.white,  3.2f);
-            Material trailMat = Mat("Trail", Neon.Cyan,    Neon.Glow * 0.9f);
-            Material railMat  = Mat("Rail",  Neon.Magenta, Neon.Glow * 0.8f);
-            Material starMat  = Mat("Star",  Neon.Star,    1.1f);
+            Material shipMat  = Mat("Ship",      Neon.Cyan,    Neon.Glow);
+            Material panelMat = Mat("ShipPanel", Neon.Cyan,    0.6f);
+            Material coreMat  = Mat("Core",      Color.white,  3.2f);
+            Material trailMat = Mat("Trail",     Neon.Cyan,    Neon.Glow * 0.9f);
+            Material railMat  = Mat("Rail",      Neon.Magenta, Neon.Glow * 0.8f);
+            Material starMat  = Mat("Star",      Neon.Star,    1.1f);
             AssetDatabase.SaveAssets();
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
@@ -95,7 +96,7 @@ namespace Flappy.EditorTools
             roots.Add(rails);
 
             roots.Add(NeonBuild.Stars(starMat, StarCount, HalfW, HalfH));
-            roots.Add(NeonBuild.Ship(new Vector3(-HalfW * 0.5f, 0f, 0f), shipMat, coreMat, trailMat));
+            roots.Add(NeonBuild.Ship(new Vector3(-HalfW * 0.5f, 0f, 0f), shipMat, panelMat, coreMat, trailMat));
             roots.Add(new GameObject("Obstacles"));
 
             var game = new GameObject("NeonFlux");
